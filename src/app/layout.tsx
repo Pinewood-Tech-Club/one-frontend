@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Suspense } from "react";
 import "./globals.css";
+import { ConvexClientProvider } from "@/components/ConvexClientProvider";
+import { LayoutWrapper } from "@/components/LayoutWrapper";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -10,7 +11,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Pinewood One",
-  description: "Pinewood One Authentication App",
+  description: "skibidi",
 };
 
 export default function RootLayout({
@@ -23,9 +24,11 @@ export default function RootLayout({
       <body
         className={`${inter.variable} antialiased`}
       >
-        <Suspense fallback={<div>Loading...</div>}>
-          {children}
-        </Suspense>
+        <ConvexClientProvider>
+          <LayoutWrapper>
+            {children}
+          </LayoutWrapper>
+        </ConvexClientProvider>
       </body>
     </html>
   );

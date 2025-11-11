@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Home } from './home/page';
+import { AppLayout } from './AppLayout';
 
-export default function RootPage() {
+export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -21,17 +21,16 @@ export default function RootPage() {
     checkAuth();
   }, []);
 
+  // Don't show anything while checking auth
   if (isAuthenticated === null) {
-    return null; // Loading
+    return null;
   }
 
+  // If authenticated, show AppLayout (which handles all pages internally)
   if (isAuthenticated) {
-    return (
-      <div className="p-8">
-        <h1 className="text-3xl font-bold">This is the Dashboard page</h1>
-      </div>
-    );
+    return <AppLayout />;
   }
 
-  return <Home />;
+  // Not authenticated, render children (home page)
+  return <>{children}</>;
 }
