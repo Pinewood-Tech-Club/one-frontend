@@ -11,8 +11,14 @@ export default function LoginPage() {
     const errorParam = searchParams.get('error');
     const successParam = searchParams.get('success');
 
-    // If there's an error or success callback, redirect to home with params
-    if (errorParam || successParam) {
+    // If successful, just redirect
+    if (successParam) {
+      router.push('/');
+      return;
+    }
+
+    // If there's an error, redirect to home with params
+    if (errorParam) {
       router.push(`/?${searchParams.toString()}`);
       return;
     }

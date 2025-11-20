@@ -3,13 +3,38 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
+import { usePathname, useRouter } from 'next/navigation';
+import DashboardPage from '@/app/dashboard/index/page';
+import UpcomingPage from '@/app/dashboard/upcoming/page';
+import SchedulePage from '@/app/dashboard/schedule/page';
+import GradesPage from '@/app/dashboard/grades/page';
+import ChatPage from '@/app/dashboard/chat/page';
+import UserPage from '@/app/dashboard/user/page';
 
 type Page = 'dashboard' | 'upcoming' | 'schedule' | 'grades' | 'chat' | 'user';
 
+// Map pathname to page
+function pathnameToPage(pathname: string): Page {
+  if (pathname === '/' || pathname === '/dashboard') return 'dashboard';
+  if (pathname === '/upcoming') return 'upcoming';
+  if (pathname === '/schedule') return 'schedule';
+  if (pathname === '/grades') return 'grades';
+  if (pathname === '/chat') return 'chat';
+  if (pathname === '/user') return 'user';
+  return 'dashboard'; // default
+}
+
+// Map page to pathname
+function pageToPathname(page: Page): string {
+  if (page === 'dashboard') return '/';
+  return `/${page}`;
+}
+
 export function AppLayout() {
+  const pathname = usePathname();
   const [userName, setUserName] = useState<string>('Loading...');
   const [userId, setUserId] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
+  const [currentPage, setCurrentPage] = useState<Page>(() => pathnameToPage(pathname));
   // Initialize from localStorage immediately (synchronous, no flash)
   const [localCollapsed, setLocalCollapsed] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -28,6 +53,20 @@ export function AppLayout() {
 
   // Mutation to update sidebar state
   const setSidebarCollapsed = useMutation(api.userPreferences.setSidebarCollapsed);
+
+  // Sync pathname to currentPage state (for initial load and back/forward navigation)
+  useEffect(() => {
+    const page = pathnameToPage(pathname);
+    setCurrentPage(page);
+  }, [pathname]);
+
+  // Update URL when currentPage changes (without triggering navigation)
+  useEffect(() => {
+    const targetPath = pageToPathname(currentPage);
+    if (pathname !== targetPath) {
+      window.history.pushState(null, '', targetPath);
+    }
+  }, [currentPage, pathname]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -102,7 +141,7 @@ export function AppLayout() {
         <div className="flex flex-row md:flex-col gap-[10px] flex-1 md:flex-none">
           <div className={`hidden md:flex ${isCollapsed ? 'justify-center' : 'justify-end'} pb-[6px]`}>
             <button
-              className={`flex items-center justify-center py-1 text-white text-[24px] hover:bg-green-700 rounded-lg transition-colors cursor-pointer font-['SF_Pro'] ${
+              className={`flex items-center justify-center py-1 text-white text-[24px] hover:bg-green-700 rounded-lg transition-colors duration-300 cursor-pointer font-['SF_Pro'] ${
                 isCollapsed ? 'w-full' : 'w-[52px]'
               }`}
               onClick={toggleSidebar}
@@ -120,7 +159,7 @@ export function AppLayout() {
               <button
                 key={item.page}
                 onClick={() => setCurrentPage(item.page)}
-                className={`flex items-center justify-center p-[4px] flex-1 md:flex-none md:w-full md:p-0 md:py-1 ${isCollapsed ? 'md:justify-center' : 'md:justify-between md:pl-4 md:pr-1'} text-white text-[24px] cursor-pointer rounded-2xl md:rounded-lg ${
+                className={`flex items-center justify-center p-[4px] flex-1 md:flex-none md:w-full md:p-0 md:py-1 ${isCollapsed ? 'md:justify-center' : 'md:justify-between md:pl-4 md:pr-1'} text-white text-[24px] cursor-pointer rounded-2xl md:rounded-lg transition-colors ${
                   isActive ? 'bg-green-700' : 'hover:bg-green-700'
                 }`}
               >
@@ -141,7 +180,7 @@ export function AppLayout() {
         <div className="flex flex-col gap-[10px] shrink-0">
           <button
             onClick={() => setCurrentPage('user')}
-            className={`flex items-center justify-center p-[4px] md:p-0 md:py-1 md:w-full ${isCollapsed ? 'md:justify-center' : 'md:justify-between md:pl-4 md:pr-1'} text-white text-[24px] md:rounded-lg cursor-pointer ${
+            className={`flex items-center justify-center p-[4px] md:p-0 md:py-1 md:w-full ${isCollapsed ? 'md:justify-center' : 'md:justify-between md:pl-4 md:pr-1'} text-white text-[24px] md:rounded-lg cursor-pointer transition-colors ${
               currentPage === 'user' ? 'bg-green-700' : 'hover:bg-green-700'
             }`}
           >
@@ -182,71 +221,11 @@ export function AppLayout() {
   );
 }
 
-// Page content components
-function DashboardContent() {
-  return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold">This is the Dashboard page</h1>
-    </div>
-  );
-}
-
-function UpcomingContent() {
-  return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold">This is the Upcoming page</h1>
-    </div>
-  );
-}
-
-function ScheduleContent() {
-  return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold">This is the Schedule page</h1>
-    </div>
-  );
-}
-
-function GradesContent() {
-  return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold">This is the Grades page</h1>
-    </div>
-  );
-}
-
-function ChatContent() {
-  return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold">This is the Chat page</h1>
-    </div>
-  );
-}
-
-function UserContent() {
-  return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold">This is the User page</h1>
-      <button
-        onClick={async () => {
-          try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/logout`, {
-              method: 'POST',
-              credentials: 'include',
-            });
-
-            if (response.ok) {
-              window.location.href = '/';
-            }
-          } catch (error) {
-            console.error('Logout error:', error);
-          }
-        }}
-        className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-      >
-        Logout
-      </button>
-    </div>
-  );
-}
+// Page content components - using actual page components
+const DashboardContent = DashboardPage;
+const UpcomingContent = UpcomingPage;
+const ScheduleContent = SchedulePage;
+const GradesContent = GradesPage;
+const ChatContent = ChatPage;
+const UserContent = UserPage;
 

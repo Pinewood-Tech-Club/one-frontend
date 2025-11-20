@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as schoologyCache from "../schoologyCache.js";
 import type * as userPreferences from "../userPreferences.js";
 
 import type {
@@ -17,6 +18,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  schoologyCache: typeof schoologyCache;
   userPreferences: typeof userPreferences;
 }>;
 
